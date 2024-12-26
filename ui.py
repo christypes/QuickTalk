@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import scrolledtext
+import threading
 
 ####
 from socket import *
@@ -23,15 +24,21 @@ def send_message():
         message_entry.delete("1.0", tk.END)
         # *** Here you can send the message to the server
         client_socket.send(message.encode())
-        received = client_socket.recv(1024)
-        receive_message(received.decode())
 
 # Function to handle receiving messages
-def receive_message(message):
-    chat_display.config(state=tk.NORMAL)
-    chat_display.insert(tk.END, f"Server: {message}\n")
-    chat_display.config(state=tk.DISABLED)
-    chat_display.yview(tk.END)  # Automatically scroll down to the latest message
+def receive_message():
+    while True:  # *** Continuously listen for messages from the server
+        try:
+            received = client_socket.recv(1024)  # Receive data from server
+            if received:
+                message = received.decode()
+                chat_display.config(state=tk.NORMAL)
+                chat_display.insert(tk.END, f"Chris: {message}\n")
+                chat_display.config(state=tk.DISABLED)
+                chat_display.yview(tk.END)  # Automatically scroll down to the latest message
+        except Exception as e:
+            print("Error receiving message:", e)
+            break
 
 # Function to simulate receiving a message from the server
 def simulate_server_message():
@@ -54,7 +61,11 @@ message_entry.grid(row=1, column=0) #, sticky="ew", padx=2, pady=2)
 send_button = tk.Button(root, text="Send", width=2, command=send_message)
 send_button.grid(row=1, column=1, stick="ew")
 
+# ***Start the Tkinter main loop
+receive_thread = threading.Thread(target=receive_message, daemon=True)  # *** Start a new thread for receiving messages
+receive_thread.start()  # *** Run the thread to listen for messages from the server
+
 # Start the Tkinter main loop
-root.after(3000, simulate_server_message)  # Simulate receiving a message every 3 seconds
+# root.after(3000, simulate_server_message)  # Simulate receiving a message every 3 seconds
 root.mainloop()
 

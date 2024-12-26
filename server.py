@@ -35,6 +35,7 @@ def broadcast(message, sender_socket):  # *** Function to broadcast message to a
 def handle_client(client_socket, addr):  # *** Define a function to handle each client
     print("3-way handshake complete: ", client_socket, addr)
     clients.append(client_socket)  # *** Add client to the list of connected clients
+    client_socket.send("Hello! Welcome to QuickChat!".encode())
     while True:
         message = client_socket.recv(1024)  # buffer_size = 1024
         if not message:
